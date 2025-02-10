@@ -36,4 +36,4 @@ def nova_pipe():
     x_std = (x_np - x_np.mean()) / x_np.std() / 2
     y_std = (y_np - y_np.mean()) / y_np.std() / 2
 
-    return {"x": x_std, "y":}
+    return {"x": x_std, "y": y_std}
