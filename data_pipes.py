@@ -41,7 +41,18 @@ def nova_data(symbols, df):
     # return {"x": x_std, "y": y_std}
     return {"x": x_norm, "y": y_norm, "index": index}
 
-def hanzo_df_array(symbols, df):
+def hanzo_df_array(
+        symbols,
+        df,
+        hist = 10,
+        future = 1,
+        vol_max_threshold = 1000,
+        price_max_threshold = 10,
+        future_max_threshold = 10,
+        std_reduction_factor = 5,
+        output_scale = 30,
+        standardize = True
+    ):
     close = df["Close"]
     vol = df["Volume"]
 
@@ -59,7 +70,6 @@ def hanzo_df_array(symbols, df):
 
     # Convert to np array
     close_np, vol_np = close.to_numpy(), vol.to_numpy()
-    hist, future = 35, 7
     x, y = [], []
 
     for idx in range(hist+1, len(close_np)-future):
@@ -71,13 +81,22 @@ def hanzo_df_array(symbols, df):
         v1 = vol_np[idx - hist:idx]
         v_idx = v1 / v0 - 1
 
-        x_idx = np.stack((p_idx.T, v_idx.T), axis=2)
-
         y0 = close_np[idx]
         y1 = close_np[idx + future]
-        y_idx = np.array(([y1 / y0 - 1])).T
+        y_idx = np.array(([y1 / y0 - 1])).T * output_scale
 
-        if not np.any(np.isnan(x_idx)) and not np.any(np.isnan(y_idx)):
+        if standardize:
+            p_idx = (p_idx - p_idx.mean()) / p_idx.std() / std_reduction_factor
+            v_idx = (v_idx - v_idx.mean()) / v_idx.std() / std_reduction_factor
+
+        x_idx = np.stack((p_idx.T, v_idx.T), axis=2)
+
+        c0 = np.logical_not(np.any(np.isnan(x_idx)))
+        c1 = np.logical_not(np.any(np.isnan(y_idx)))
+        c2 = v_idx.max() < vol_max_threshold
+        c3 = p_idx.max() < price_max_threshold
+        c4 = y_idx.max() < future_max_threshold
+        if c0 and c1 and c2 and c3 and c4:
             x.append(x_idx)
             y.append(y_idx)
 
