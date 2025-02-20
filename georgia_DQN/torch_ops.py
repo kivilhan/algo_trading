@@ -1,5 +1,7 @@
+import random
 import torch
 from torch import nn
+import numpy as np
 
 def train_loop(x, y, model, loss_fn, optimizer, batch_size):
     size = x.shape[0]
@@ -46,3 +48,26 @@ def test_loop(x, y, model, loss_fn, batch_size):
     test_loss /= num_batches
     # print(f"Test Error: Avg loss: {test_loss:>8f} \n")
     return test_loss
+
+def random_model_config():
+    num_layers = random.randint(1, 10)  # Random number of layers between 1 and 10
+    neurons = [random.randint(4, 512) for _ in range(num_layers - 1)] + [1]  # Last neuron always 1
+    activations = [random.choice(['relu', 'selu', 'sigmoid', 'none']) for _ in range(num_layers)]
+    dropouts = [round(random.uniform(0.0, 0.5), 2) for _ in range(num_layers - 1)] + [0.0]  # Last dropout is 0
+
+    return {
+        "neurons": neurons,
+        "activations": activations,
+        "dropouts": dropouts
+    }
+
+def rate_schedule_cosine(rate_min = 1e-5,
+                         rate_max = 1e-2,
+                         epochs = 100,
+                         period = 20,
+                         decay_param = 1e-3):
+    cos_base = (np.cos(np.arange(epochs) / period * 2 * np.pi) + 1) / 2
+    cos_decay = cos_base * np.exp(-np.arange(epochs) * decay_param)
+    cos_mapped = cos_decay * (rate_max - rate_min) + rate_min
+    
+    return cos_mapped
