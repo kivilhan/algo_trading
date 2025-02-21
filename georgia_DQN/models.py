@@ -1,7 +1,7 @@
 from torch import nn
 
 class georgia_0(nn.Module):
-    def __init__(self, win_past=20, features=19, dropout_rate=0.4):
+    def __init__(self, win_past=20, features=19, dropout_rate=0.3):
         super().__init__()
         self.flat0 = nn.Flatten()
 
