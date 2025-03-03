@@ -164,5 +164,6 @@ def process_df_3(df_path, win_ftr=20, win_past=20, gamma=0.9, offset=50):
 
     #####REAL PRICES#####
     close_trim = close_np[win_past - 1:len(close_np) - win_ftr]
+    close_trim = close_trim.reshape((len(close_trim), 1))
 
     return {"x": model_inputs, "y": rewards_standard, "close": close_trim}
