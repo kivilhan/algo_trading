@@ -28,7 +28,7 @@ class georgia_0(nn.Module):
         return x
     
 class georgia_1(nn.Module):
-    def __init__(self, config, win_past=20, features=19):
+    def __init__(self, config, win_past=20, features=13, bias=False):
         super().__init__()
         self.layers = nn.ModuleList()
         self.layers.append(nn.Flatten())
@@ -40,20 +40,32 @@ class georgia_1(nn.Module):
                 activation = nn.SELU()
             elif config['activations'][idx] == 'sigmoid':
                 activation = nn.Sigmoid()
+            elif config['activations'][idx] == 'tanh':
+                activation = nn.Tanh()
             elif config['activations'][idx] == 'none':
                 activation = "none"
             else:
-                raise ValueError(f"Unrecognized activation function at index {idx}: {activations[idx]}")
+                raise ValueError(f"Unrecognized activation function at index {idx}: {config['activations'][idx]}")
 
             if idx == 0:
-                self.layers.append(nn.Linear(features*win_past, config['neurons'][idx]))
+                self.layers.append(nn.Linear(features*win_past, config['neurons'][idx], bias=bias))
             else:
-                self.layers.append(nn.Linear(config['neurons'][idx - 1], config['neurons'][idx]))
+                self.layers.append(nn.Linear(config['neurons'][idx - 1], config['neurons'][idx], bias=bias))
 
             if activation != 'none':
                 self.layers.append(activation)
 
             self.layers.append(nn.Dropout(config['dropouts'][idx]))
+        
+        # self.init_weights()
+        
+    def init_weights(self):
+        for m in self.modules():
+            if isinstance(m, nn.Linear):
+                
+                nn.init.trunc_normal_(m.weight, mean=0, std=1)  # Set mean=0, std=1
+                if m.bias is not None:
+                    nn.init.zeros_(m.bias)  # Optional: Initialize biases to 0
 
     def forward(self, x):
         for layer in self.layers:
