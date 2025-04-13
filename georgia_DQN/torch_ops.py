@@ -36,7 +36,7 @@ def test_loop(x, y, model, loss_fn, batch_size):
     model.eval()
     test_loss = 0
 
-    # Evaluating the model with torch.no_grad() ensures that no gradients are computed during test mode
+    # Evaluating the model with tor ch.no_grad() ensures that no gradients are computed during test mode
     # also serves to reduce unnecessary gradient computations and memory usage for tensors with requires_grad=True
     with torch.no_grad():
         for batch in range(num_batches):
